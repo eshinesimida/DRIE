@@ -61,12 +61,6 @@ process <- function(x){
 #----------------------------------------
 #--------1.GSE6956 differnential analysis--
 
-all_de <- read.csv('Breast cancer_degs.csv', header = T, stringsAsFactors = F)
-
-all_de <- read.csv('BC_gse31448.csv', header = T, stringsAsFactors = F)
-
-
-all_de <- read.csv('BC_GSE42568.csv', header = T, stringsAsFactors = F)
 
 all_de <- read.csv('BC_GSE29044.csv', header = T, stringsAsFactors = F)
 
@@ -104,13 +98,6 @@ gg<-keggGlobalGraph()
 kegg_genes <- process(nodes(gg))
 
 
-
-tg <- read.csv('COAD.csv', header = T, stringsAsFactors = F)
-
-tg <- tg[!duplicated(tg$ENTREZID),]
-tg5 <- tg[tg$adj.P.Val<0.05,]
-
-rownames(tg5) <- tg5$ENTREZID
 
 
 tg_all <- tg_all[!duplicated(tg_all$genes),]

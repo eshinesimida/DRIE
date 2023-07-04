@@ -131,5 +131,85 @@ g4<-igraph.from.graphNEL(globalGraphNonNeg)
 
 ##------------------------------
 
+#-----4.get drug-induced genes from CMap database
+drug_genes <- read.csv('drug_gene_all1.csv', header = T, stringsAsFactors = F)
+drug_genes_MCF7 <- drug_genes[which(drug_genes$cell_line == 'MCF7'),]
+#drug_genes_MCF7 <- drug_genes[which(drug_genes$cell_line == 'HL60'),]
+#drug_genes_MCF7 <- drug_genes[which(drug_genes$cell_line == 'PC3'),]
+drug_genes_MCF7_1 <- drug_genes_MCF7[drug_genes_MCF7$fdr<0.05,]
+MCF1 <- as.character(unique(drug_genes_MCF7_1$drug))
+##------------------------------
+
+#-----5. run the DRIE method based on lung cancer
+drugs <- c()
+scores1 <- c()
+p_name <- c()
+pb <- txtProgressBar(min = 0, max = length(MCF1), style = 3)
+
+for(ii in 1:length(MCF1)){
+  setTxtProgressBar(pb, ii)
+  i1 <- MCF1[ii]
+  cat('i=',i1,'\n')
+  drug_gene <- drug_genes_MCF7_1[which(drug_genes_MCF7_1$drug == i1),]
+  fc <- drug_gene$fc
+  names(fc) <- drug_gene$ENTREZID
+  drug_gene1 <- paste('hsa:',drug_gene$ENTREZID, sep = '')
+
+  a <- length(intersect(nodes(mapkG3), drug_gene1))
+  d_gene <- paste('hsa:',names(disease_genes),sep='')
+  d_gene1 <- intersect(nodes(mapkG3), d_gene)
+  if(a > 0 && length(d_gene1) > 0){
+
+    diff_gene <- d_gene1
+    diff_drug <- intersect(nodes(mapkG3), drug_gene1)
+
+    distance1 <- c()
+    score <- c()
+    n = 0
+    for(i in diff_gene){
+      n = n+1
+      cat('n=',n,'\n')
+      for(j in diff_drug){
+        I <- get_r2(g4, j ,i)
+        score <- c(score,I)
+
+      }
+    }
+    B <- matrix(score, nrow = length(diff_drug), byrow = FALSE, dimnames = list(diff_drug,
+                                                                                diff_gene))
+
+    B1 <- apply(B,2,sum)
+    B2 <- c()
+    for(m in B1){
+      if(m >0){
+        value <- 1
+      }else if(m==0){
+        value <- 0
+      }else{
+        value <- -1
+      }
+      B2 <- c(B2, value)
+    }
+    names(B2) <- names(B1)
+    #B2 <- ifelse(B1< 0,-1,1)
+    names(B2) <- sapply(names(B2),process)
+    drug_gene_all <- B2
+    disease_gene_all <- disease_genes[names(drug_gene_all)]
+    consistence <- data.frame(drug_gene = drug_gene_all, disease_gene = disease_gene_all)
+    #scores <- length(which(apply(consistence, 1, sum) == 0))
+    scores <- sum(-consistence$drug_gene*consistence$disease_gene)
+  }else{
+    scores <- 0
+
+  }
+  drugs <- c(drugs, i1)
+  scores1 <- c(scores1, scores)
+  #p_name <- c(p_name, p)
+}
+
+dataframe_drug <- data.frame(drug = MCF1, score = scores1, stringsAsFactors = F)
+##------------------------------
+##------------------------------
+
 
 

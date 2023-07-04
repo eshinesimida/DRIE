@@ -43,6 +43,7 @@ library(KEGGdzPathwaysGEO)
 library(KEGGandMetacoreDzPathwaysGEO)
 library(SPIA)
 library(DRIE)
+source('function.R')
 
 
 #1.Load the data of lung cancer
